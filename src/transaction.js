@@ -39,6 +39,9 @@ export class Transaction {
     }
     this._networkPassphrase = networkPassphrase;
 
+    // temp hack
+    envelope = envelope.value();
+
     // since this transaction is immutable, save the tx
     this.tx = envelope.tx();
     this.source = StrKey.encodeEd25519PublicKey(
@@ -243,7 +246,9 @@ export class Transaction {
   toEnvelope() {
     const tx = this.tx;
     const signatures = this.signatures;
-    const envelope = new xdr.TransactionEnvelope({ tx, signatures });
+    const envelope = new xdr.TransactionEnvelope.envelopeTypeTx(
+      new xdr.TransactionV1Envelope({ tx, signatures })
+    );
 
     return envelope;
   }

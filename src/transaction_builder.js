@@ -208,13 +208,14 @@ export class TransactionBuilder {
 
     this.timebounds.minTime = UnsignedHyper.fromString(this.timebounds.minTime.toString());
     this.timebounds.maxTime = UnsignedHyper.fromString(this.timebounds.maxTime.toString())
-    
+
     attrs.timeBounds = new xdr.TimeBounds(this.timebounds);
 
     const xtx = new xdr.Transaction(attrs);
     xtx.operations(this.operations);
 
-    const xenv = new xdr.TransactionEnvelope({ tx: xtx });
+
+    const xenv = xdr.TransactionEnvelope.envelopeTypeTx(new xdr.TransactionV1Envelope({ tx: xtx }));
     const tx = new Transaction(xenv, this.networkPassphrase);
 
     this.source.incrementSequenceNumber();
