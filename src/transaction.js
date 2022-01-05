@@ -244,7 +244,11 @@ export class Transaction extends TransactionBase {
    */
   getClaimableBalanceId(opIndex) {
     // Validate and then extract the operation from the transaction.
-    if (!isInteger(opIndex) || opIndex < 0 || opIndex >= this.operations) {
+    if (
+      !isInteger(opIndex) ||
+      opIndex < 0 ||
+      opIndex >= this.operations.length
+    ) {
       throw new RangeError('invalid operation index');
     }
 
@@ -259,8 +263,7 @@ export class Transaction extends TransactionBase {
 
     // Use the operation's source account or the transaction's source if not. In
     // either case, use the unmuxed version.
-    let account =
-      op.sourceAccount() || decodeAddressToMuxedAccount(this.source, true);
+    let account = decodeAddressToMuxedAccount(this.source, true);
     if (account.switch() === xdr.CryptoKeyType.keyTypeMuxedEd25519()) {
       account = account.med25519();
     }
