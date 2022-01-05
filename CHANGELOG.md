@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+### Add
+- Adds a helper function `Transaction.getClaimableBalanceId(int)` which lets you pre-determine the hex claimable balance ID of a `createClaimableBalance` operation prior to submission to the network [#482](https://github.com/stellar/js-stellar-base/pull/482).
+
 
 ## [v6.0.6](https://github.com/stellar/js-stellar-base/compare/v6.0.5..v6.0.6)
 
