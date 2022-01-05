@@ -897,6 +897,8 @@ export class Transaction<
     minTime: string;
     maxTime: string;
   };
+
+  getClaimableBalanceId(opIndex: number): string;
 }
 
 export const BASE_FEE = '100';
