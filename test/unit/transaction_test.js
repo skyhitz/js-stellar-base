@@ -575,6 +575,80 @@ describe('Transaction', function() {
       );
     });
   });
+
+  describe('knows how to calculate claimable balance IDs', function() {
+    let gSource = new StellarBase.Account(
+      'GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVSGZ',
+      '1234'
+    );
+    let mSource = new StellarBase.MuxedAccount(gSource, '5678');
+    let gSource2 = new StellarBase.Account(
+      'GDQERENWDDSQZS7R7WKHZI3BSOYMV3FSWR7TFUYFTKQ447PIX6NREOJM',
+      '9012'
+    );
+
+    const makeBuilder = function(source) {
+      return new StellarBase.TransactionBuilder(source, {
+        fee: StellarBase.BASE_FEE,
+        networkPassphrase: StellarBase.Networks.TESTNET,
+        withMuxing: true
+      }).setTimeout(StellarBase.TimeoutInfinite);
+    };
+
+    const makeClaimableBalance = function(source) {
+      return StellarBase.Operation.createClaimableBalance({
+        source: source,
+        asset: StellarBase.Asset.native(),
+        amount: '100',
+        claimants: [
+          new StellarBase.Claimant(
+            gSource.accountId(),
+            StellarBase.Claimant.predicateUnconditional()
+          )
+        ]
+      });
+    };
+
+    const paymentOp = StellarBase.Operation.payment({
+      destination: gSource.accountId(),
+      asset: StellarBase.Asset.native(),
+      amount: '100'
+    });
+
+    it('calculates from transaction src', function() {
+      let tx = makeBuilder(gSource)
+        .addOperation(makeClaimableBalance())
+        .build();
+      const balanceId = tx.getClaimableBalanceId(0);
+      expect(balanceId).to.be.equal(
+        '00000000536af35c666a28d26775008321655e9eda2039154270484e3f81d72c66d5c26f'
+      );
+    });
+
+    it('calculates from muxed transaction src as if unmuxed', function() {
+      let tx = makeBuilder(mSource)
+        .addOperation(makeClaimableBalance())
+        .build();
+      const balanceId = tx.getClaimableBalanceId(0);
+      expect(balanceId).to.be.equal(
+        '00000000536af35c666a28d26775008321655e9eda2039154270484e3f81d72c66d5c26f'
+      );
+    });
+
+    it('throws on invalid operations', function() {
+      let tx = makeBuilder(mSource)
+        .addOperation(paymentOp)
+        .addOperation(makeClaimableBalance())
+        .build();
+
+      expect(() => tx.getClaimableBalanceId(0)).to.throw(
+        /createClaimableBalance/
+      );
+      expect(() => tx.getClaimableBalanceId(1)).to.not.throw();
+      expect(() => tx.getClaimableBalanceId(2)).to.throw(/index/);
+      expect(() => tx.getClaimableBalanceId(-1)).to.throw(/index/);
+    });
+  });
 });
 
 function expectBuffersToBeEqual(left, right) {
